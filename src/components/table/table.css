@@ -1,5 +1,9 @@
 .e-table {
   @apply table border-collapse;
+
+  & th {
+    @apply cursor-pointer;
+  }
 }
 
 .row-even {

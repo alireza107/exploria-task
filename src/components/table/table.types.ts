@@ -3,7 +3,7 @@ export type TableColDef = {
   headerName: string;
 };
 
-type TableRowDef = {
+export type TableRowDef = {
   id: string;
   [key: string]: string;
 };
