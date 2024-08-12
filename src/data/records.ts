@@ -20,30 +20,6 @@ export const DATA = [
     address: '467 Radde Place, Forestburg, Montana, 3456',
     phone: '+1 (906) 453-3147',
   },
-];
-
-export const DATA1 = [
-  {
-    id: '205a80ab-ac25-42ca-9aa7-a4e466c1e221',
-    name: 'Young Clay',
-    date: '2017-03-31',
-    address: '935 Eastern Parkway, Belleview, Alaska, 8145',
-    phone: '+1 (920) 536-3778',
-  },
-  {
-    id: 'bbe77d62-2f37-42b9-95d9-d79bfb9dca17',
-    name: 'Crystal Barry',
-    date: '2021-03-09',
-    address: '785 Canal Avenue, Aguila, North Dakota, 3554',
-    phone: '+1 (949) 443-3038',
-  },
-  {
-    id: '7150174e-532f-4ab0-a713-511ea3edc0c6',
-    name: 'Norman Vega',
-    date: '2019-01-07',
-    address: '467 Radde Place, Forestburg, Montana, 3456',
-    phone: '+1 (906) 453-3147',
-  },
   {
     id: 'e836cdae-d3f4-4275-8f99-9c269d7abdfe',
     name: 'Kate Curry',

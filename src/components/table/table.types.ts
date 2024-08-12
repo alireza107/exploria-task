@@ -11,4 +11,5 @@ export type TableRowDef = {
 export type TableProps = {
   columns: TableColDef[];
   rows: TableRowDef[];
+  rowsPerPageOptions?: number[];
 };
