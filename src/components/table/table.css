@@ -1,0 +1,18 @@
+.e-table {
+  @apply table border-collapse;
+}
+
+.row-even {
+  @apply bg-gray-900;
+  &:hover {
+    @apply bg-gray-700;
+  }
+}
+
+.row-odd {
+  @apply bg-gray-800;
+
+  &:hover {
+    @apply bg-gray-600;
+  }
+}
