@@ -3,22 +3,22 @@ import { TableColDef } from '@/components/table/table.types';
 import { DATA } from '@/data/records';
 
 const tableCols: TableColDef[] = [
-  { field: 'id', headerName: 'id' },
+  { field: 'id', headerName: 'User ID' },
   {
     field: 'name',
-    headerName: 'name',
+    headerName: 'Name of the User',
   },
   {
     field: 'date',
-    headerName: 'registered date',
+    headerName: 'Date of Registration',
   },
   {
     field: 'address',
-    headerName: 'address',
+    headerName: 'Address',
   },
   {
     field: 'phone',
-    headerName: 'phone',
+    headerName: 'Phone Number',
   },
 ];
 

@@ -1,9 +1,11 @@
 import { useState } from 'react';
 
-export const useFilter = (initialData: any[]) => {
-  const [filters, setFilters] = useState<{ [key: string]: string }>({});
+type FilterValue = string | RegExp;
 
-  const onFilterChange = (columnKey: string, filterValue: string) => {
+export const useFilter = (initialData: any[]) => {
+  const [filters, setFilters] = useState<{ [key: string]: FilterValue }>({});
+
+  const onFilterChange = (columnKey: string, filterValue: FilterValue) => {
     setFilters({
       ...filters,
       [columnKey]: filterValue,
@@ -11,12 +13,20 @@ export const useFilter = (initialData: any[]) => {
   };
 
   const filteredData = initialData.filter((item) => {
-    return Object.keys(filters).every((key) =>
-      item[key]
-        .toString()
-        .toLowerCase()
-        .includes(filters[key]?.toLowerCase() || '')
-    );
+    return Object.keys(filters).every((key) => {
+      const filterValue = filters[key];
+      const itemValue = item[key]?.toString().toLowerCase();
+
+      if (typeof filterValue === 'string') {
+        return itemValue.includes(filterValue.toLowerCase());
+      }
+
+      if (filterValue instanceof RegExp) {
+        return filterValue.test(itemValue);
+      }
+
+      return true;
+    });
   });
 
   return { filteredData, onFilterChange, filters };

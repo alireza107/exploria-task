@@ -1,7 +1,7 @@
 'use client';
 
-import { TableProps } from './table.types';
 import './table.css';
+import { TableProps } from './table.types';
 import { useState } from 'react';
 import { usePagination } from './usePagination';
 import { useFilter } from './useFilter';
@@ -47,15 +47,51 @@ export const Table: React.FC<TableProps> = ({
             {columns.map((column) => (
               <th
                 key={`${column.field}-filter`}
-                className='px-6 py-2 border-b-2 border-gray-300'
+                className='px-6 py-2 border-b-2 border-gray-300 relative bg-slate-600'
               >
                 <input
                   type='text'
                   placeholder={`Filter ${column.headerName}`}
-                  value={filters[column.field] || ''}
-                  onChange={(e) => onFilterChange(column.field, e.target.value)}
+                  value={filters[column.field]?.toString() || ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (
+                      value.startsWith('/') &&
+                      value.endsWith('/') &&
+                      value.length > 1
+                    ) {
+                      onFilterChange(
+                        column.field,
+                        new RegExp(value.slice(1, -1), 'i')
+                      );
+                    } else {
+                      onFilterChange(column.field, value);
+                    }
+                  }}
                   className='p-2 border rounded w-full text-slate-950'
                 />
+                {filters[column.field] && (
+                  <button
+                    onClick={() => onFilterChange(column.field, '')}
+                    className='absolute bg-red-600 right-8 top-1/2 transform rounded
+                     -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none'
+                  >
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      className='h-5 w-5'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      stroke='currentColor'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M6 18L18 6M6 6l12 12'
+                      />
+                    </svg>
+                  </button>
+                )}
               </th>
             ))}
           </tr>
