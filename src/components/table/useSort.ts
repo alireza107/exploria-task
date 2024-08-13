@@ -1,47 +1,36 @@
-import { useState } from 'react';
+import { useMemo } from 'react';
 
 type SortOrder = 'asc' | 'desc';
 
-interface SortConfig {
+export interface SortConfig {
   key: string;
   order: SortOrder;
 }
 
-export const useSort = (initialData: any[]) => {
-  const [sortConfig, setSortConfig] = useState<SortConfig[]>([]);
+export const useSort = (initialData: any[], sortConfig: SortConfig | null) => {
+  const sortedData = useMemo(() => {
+    if (!sortConfig) return initialData;
 
-  const onSort = (columnKey: string) => {
-    let newSortConfig = [...sortConfig];
-    const existingSortIndex = newSortConfig.findIndex(
-      (sort) => sort.key === columnKey
-    );
+    const { key, order } = sortConfig;
+    return [...initialData].sort((a, b) => {
+      if (a[key] < b[key]) return order === 'asc' ? -1 : 1;
+      if (a[key] > b[key]) return order === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [initialData, sortConfig]);
 
-    if (existingSortIndex >= 0) {
-      if (newSortConfig[existingSortIndex].order === 'desc') {
-        newSortConfig.splice(existingSortIndex, 1);
+  const onSort = (key: string) => {
+    if (sortConfig && sortConfig.key === key) {
+      const newOrder = sortConfig.order === 'asc' ? 'desc' : 'asc';
+      if (sortConfig.order === 'desc') {
+        return null;
       } else {
-        newSortConfig[existingSortIndex].order =
-          newSortConfig[existingSortIndex].order === 'asc' ? 'desc' : 'asc';
+        return { key, order: newOrder };
       }
     } else {
-      newSortConfig.push({ key: columnKey, order: 'asc' });
+      return { key, order: 'asc' };
     }
-
-    setSortConfig(newSortConfig);
   };
 
-  const sortedData = [...initialData].sort((a, b) => {
-    for (let i = 0; i < sortConfig.length; i++) {
-      const { key, order } = sortConfig[i];
-      if (a[key] < b[key]) {
-        return order === 'asc' ? -1 : 1;
-      }
-      if (a[key] > b[key]) {
-        return order === 'asc' ? 1 : -1;
-      }
-    }
-    return 0;
-  });
-
-  return { sortedData, onSort, sortConfig };
+  return { sortedData, onSort };
 };

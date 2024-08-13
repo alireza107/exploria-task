@@ -6,24 +6,35 @@ import { useState } from 'react';
 import { usePagination } from './usePagination';
 import { useFilter } from './useFilter';
 import { useSort } from './useSort';
+import { useQueryParams } from './useQueryParams';
 
 export const Table: React.FC<TableProps> = ({
   columns,
   rows,
   rowsPerPageOptions = [5, 10, 20],
 }: TableProps) => {
+  const { params, setQueryParam } = useQueryParams({
+    initialParams: {
+      page: '1',
+      sort: null,
+      ...Object.fromEntries(columns.map((col) => [col.field, ''])),
+    },
+  });
+
+  const filters = Object.fromEntries(
+    columns.map((column) => [column.field, params[column.field] || ''])
+  );
+
+  const sortConfig = params.sort ? JSON.parse(params.sort) : null;
+  const currentPage = parseInt(params.page || '1', 10);
+
   const [rowsPerPage, setRowsPerPage] = useState<number>(5);
 
-  const { filteredData, onFilterChange, filters } = useFilter(rows);
-  const { sortedData, onSort, sortConfig } = useSort(filteredData);
+  const { filteredData } = useFilter(rows, filters);
+  const { sortedData, onSort } = useSort(filteredData, sortConfig);
 
-  const {
-    paginatedData,
-    currentPage,
-    totalPages,
-    goToNextPage,
-    goToPreviousPage,
-  } = usePagination(sortedData, rowsPerPage);
+  const { paginatedData, totalPages, goToNextPage, goToPreviousPage } =
+    usePagination(sortedData, rowsPerPage, currentPage);
 
   return (
     <div>
@@ -31,14 +42,22 @@ export const Table: React.FC<TableProps> = ({
         <thead>
           <tr>
             {columns.map((col) => (
-              <th key={col.field} onClick={() => onSort(col.field)}>
+              <th
+                key={col.field}
+                onClick={() => {
+                  const newSortConfig = onSort(col.field);
+                  if (newSortConfig === null) {
+                    setQueryParam('sort', '');
+                  } else {
+                    setQueryParam('sort', JSON.stringify(newSortConfig));
+                  }
+                }}
+              >
                 {col.headerName}
-                {sortConfig.find((config) => config.key === col.field)
-                  ?.order === 'asc'
-                  ? ' 🔼'
-                  : sortConfig.find((config) => config.key === col.field)
-                      ?.order === 'desc'
-                  ? ' 🔽'
+                {sortConfig && sortConfig.key === col.field
+                  ? sortConfig.order === 'asc'
+                    ? ' 🔼'
+                    : ' 🔽'
                   : null}
               </th>
             ))}
@@ -60,19 +79,23 @@ export const Table: React.FC<TableProps> = ({
                       value.endsWith('/') &&
                       value.length > 1
                     ) {
-                      onFilterChange(
+                      setQueryParam(
                         column.field,
                         new RegExp(value.slice(1, -1), 'i')
                       );
                     } else {
-                      onFilterChange(column.field, value);
+                      setQueryParam(column.field, value);
                     }
+                    setQueryParam('page', 1);
                   }}
                   className='p-2 border rounded w-full text-slate-950'
                 />
                 {filters[column.field] && (
                   <button
-                    onClick={() => onFilterChange(column.field, '')}
+                    onClick={() => {
+                      setQueryParam(column.field, '');
+                      setQueryParam('page', 1);
+                    }}
                     className='absolute bg-red-600 right-8 top-1/2 transform rounded
                      -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none'
                   >
@@ -108,7 +131,10 @@ export const Table: React.FC<TableProps> = ({
       </table>
       <div className='flex justify-between items-center mt-4'>
         <button
-          onClick={goToPreviousPage}
+          onClick={() => {
+            const newPage = goToPreviousPage();
+            setQueryParam('page', newPage.toString());
+          }}
           disabled={currentPage === 1}
           className='bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50'
         >
@@ -130,7 +156,10 @@ export const Table: React.FC<TableProps> = ({
           Page {currentPage} of {totalPages}
         </span>
         <button
-          onClick={goToNextPage}
+          onClick={() => {
+            const newPage = goToNextPage();
+            setQueryParam('page', newPage.toString());
+          }}
           disabled={currentPage === totalPages}
           className='bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50'
         >

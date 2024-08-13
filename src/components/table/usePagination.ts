@@ -1,23 +1,32 @@
-import { useState } from 'react';
+'use client';
 
-export const usePagination = (data: any[], rowsPerPage: number) => {
-  const [currentPage, setCurrentPage] = useState(1);
+import { useMemo } from 'react';
 
+export const usePagination = (
+  data: any[],
+  rowsPerPage: number,
+  currentPage: number
+) => {
   const totalPages = Math.ceil(data.length / rowsPerPage);
 
-  const paginatedData = data.slice(
-    (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage
-  );
+  const paginatedData = useMemo(() => {
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    return data.slice(start, end);
+  }, [data, rowsPerPage, currentPage]);
 
-  const goToNextPage = () =>
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-  const goToPreviousPage = () =>
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  const goToNextPage = () => {
+    if (currentPage < totalPages) return currentPage + 1;
+    return currentPage;
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) return currentPage - 1;
+    return currentPage;
+  };
 
   return {
     paginatedData,
-    currentPage,
     totalPages,
     goToNextPage,
     goToPreviousPage,
