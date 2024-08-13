@@ -2,92 +2,28 @@
 
 import { TableProps } from './table.types';
 import './table.css';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
+import { usePagination } from './usePagination';
+import { useFilter } from './useFilter';
+import { useSort } from './useSort';
 
 export const Table: React.FC<TableProps> = ({
   columns,
   rows,
   rowsPerPageOptions = [5, 10, 20],
 }: TableProps) => {
-  const [sortConfigs, setSortConfigs] = useState<
-    {
-      key: string;
-      direction: 'ascending' | 'descending';
-    }[]
-  >([]);
-  const [filters, setFilters] = useState<{ [key: string]: string }>({});
-
-  const [currentPage, setCurrentPage] = useState<number>(1);
   const [rowsPerPage, setRowsPerPage] = useState<number>(5);
 
-  const onFilterChange = (columnKey: string, filterValue: string) => {
-    setFilters({
-      ...filters,
-      [columnKey]: filterValue,
-    });
-    setCurrentPage(1); // Reset to the first page when filtering
-  };
+  const { filteredData, onFilterChange, filters } = useFilter(rows);
+  const { sortedData, onSort, sortConfig } = useSort(filteredData);
 
-  const filteredData = rows.filter((row) => {
-    return Object.keys(filters).every((key) =>
-      row[key].toString().toLowerCase().includes(filters[key].toLowerCase())
-    );
-  });
-
-  const sortedRows = useMemo(() => {
-    let sortedData = [...filteredData];
-    sortConfigs.map((sortConfig) => {
-      sortedData = sortedData.sort((a, b) => {
-        const { key, direction } = sortConfig;
-        if (a[key] < b[key]) {
-          return direction === 'ascending' ? -1 : 1;
-        }
-        if (a[key] > b[key]) {
-          return direction === 'ascending' ? 1 : -1;
-        }
-        return 0;
-      });
-    });
-
-    return sortedData;
-  }, [filteredData, sortConfigs]);
-
-  const requestSort = (key: string) => {
-    setSortConfigs((prevConfigs) => {
-      const existingConfigIndex = prevConfigs.findIndex(
-        (config) => config.key === key
-      );
-      if (existingConfigIndex > -1) {
-        const existingConfig = prevConfigs[existingConfigIndex];
-        const newConfigs = [...prevConfigs];
-        if (existingConfig.direction === 'descending') {
-          newConfigs.splice(existingConfigIndex, 1);
-          return newConfigs;
-        } else {
-          const newDirection =
-            existingConfig.direction === 'ascending'
-              ? 'descending'
-              : 'ascending';
-          newConfigs[existingConfigIndex] = { key, direction: newDirection };
-          return newConfigs;
-        }
-      } else {
-        return [...prevConfigs, { key, direction: 'ascending' }];
-      }
-    });
-  };
-
-  const totalPages = Math.ceil(sortedRows.length / rowsPerPage);
-
-  const paginatedData = sortedRows.slice(
-    (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage
-  );
-
-  const goToNextPage = () =>
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-  const goToPreviousPage = () =>
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  const {
+    paginatedData,
+    currentPage,
+    totalPages,
+    goToNextPage,
+    goToPreviousPage,
+  } = usePagination(sortedData, rowsPerPage);
 
   return (
     <div>
@@ -95,13 +31,13 @@ export const Table: React.FC<TableProps> = ({
         <thead>
           <tr>
             {columns.map((col) => (
-              <th key={col.field} onClick={() => requestSort(col.field)}>
+              <th key={col.field} onClick={() => onSort(col.field)}>
                 {col.headerName}
-                {sortConfigs.find((config) => config.key === col.field)
-                  ?.direction === 'ascending'
+                {sortConfig.find((config) => config.key === col.field)
+                  ?.order === 'asc'
                   ? ' 🔼'
-                  : sortConfigs.find((config) => config.key === col.field)
-                      ?.direction === 'descending'
+                  : sortConfig.find((config) => config.key === col.field)
+                      ?.order === 'desc'
                   ? ' 🔽'
                   : null}
               </th>
