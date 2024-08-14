@@ -2,7 +2,6 @@
 
 import './table.css';
 import { TableProps } from './table.types';
-import { useState } from 'react';
 import { usePagination } from './usePagination';
 import { useFilter } from './useFilter';
 import { useSort } from './useSort';
@@ -17,6 +16,7 @@ export const Table: React.FC<TableProps> = ({
     initialParams: {
       page: '1',
       sort: null,
+      rowsPerPage: '5',
       ...Object.fromEntries(columns.map((col) => [col.field, ''])),
     },
   });
@@ -28,7 +28,7 @@ export const Table: React.FC<TableProps> = ({
   const sortConfig = params.sort ? JSON.parse(params.sort) : null;
   const currentPage = parseInt(params.page || '1', 10);
 
-  const [rowsPerPage, setRowsPerPage] = useState<number>(5);
+  const rowsPerPage = params.rowsPerPage;
 
   const { filteredData } = useFilter(rows, filters);
   const { sortedData, onSort } = useSort(filteredData, sortConfig);
@@ -37,9 +37,9 @@ export const Table: React.FC<TableProps> = ({
     usePagination(sortedData, rowsPerPage, currentPage);
 
   return (
-    <div>
-      <table className='e-table'>
-        <thead>
+    <div className='overflow-x-auto bg-gray-50 p-4 rounded-lg shadow-lg'>
+      <table className='e-table min-w-full bg-white rounded-lg shadow-md table-auto'>
+        <thead className='bg-gray-200 text-gray-600 text-sm uppercase font-semibold'>
           <tr>
             {columns.map((col) => (
               <th
@@ -52,13 +52,16 @@ export const Table: React.FC<TableProps> = ({
                     setQueryParam('sort', JSON.stringify(newSortConfig));
                   }
                 }}
+                className='cursor-pointer px-6 py-3 border-b border-gray-300 text-left'
               >
-                {col.headerName}
-                {sortConfig && sortConfig.key === col.field
-                  ? sortConfig.order === 'asc'
-                    ? ' 🔼'
-                    : ' 🔽'
-                  : null}
+                <div className='flex items-center'>
+                  {col.headerName}
+                  {sortConfig && sortConfig.key === col.field
+                    ? sortConfig.order === 'asc'
+                      ? ' 🔼'
+                      : ' 🔽'
+                    : null}
+                </div>
               </th>
             ))}
           </tr>
@@ -88,7 +91,7 @@ export const Table: React.FC<TableProps> = ({
                     }
                     setQueryParam('page', 1);
                   }}
-                  className='p-2 border rounded w-full text-slate-950'
+                  className='p-2 border rounded w-full text-slate-950 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none'
                 />
                 {filters[column.field] && (
                   <button
@@ -136,32 +139,35 @@ export const Table: React.FC<TableProps> = ({
             setQueryParam('page', newPage.toString());
           }}
           disabled={currentPage === 1}
-          className='bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50'
+          className='bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50 hover:bg-blue-600'
         >
           Previous
         </button>
-        <select
-          onChange={(event) => {
-            setRowsPerPage(parseInt(event.target.value));
-          }}
-          className='bg-slate-500 rounded py-2 px-4 cursor-pointer'
-        >
-          {rowsPerPageOptions.map((rowsPerPageOption) => (
-            <option key={rowsPerPageOption} value={rowsPerPageOption}>
-              {rowsPerPageOption}
-            </option>
-          ))}
-        </select>
-        <span>
-          Page {currentPage} of {totalPages}
-        </span>
+        <div className='flex gap-4 items-center'>
+          <select
+            value={rowsPerPage}
+            onChange={(event) => {
+              setQueryParam('rowsPerPage', event.target.value);
+            }}
+            className='bg-slate-500 rounded py-2 px-4 cursor-pointer'
+          >
+            {rowsPerPageOptions.map((rowsPerPageOption) => (
+              <option key={rowsPerPageOption} value={rowsPerPageOption}>
+                {rowsPerPageOption}
+              </option>
+            ))}
+          </select>
+          <span className='text-sm text-gray-600'>
+            Page {currentPage} of {totalPages}
+          </span>
+        </div>
         <button
           onClick={() => {
             const newPage = goToNextPage();
             setQueryParam('page', newPage.toString());
           }}
           disabled={currentPage === totalPages}
-          className='bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50'
+          className='bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50 hover:bg-blue-600'
         >
           Next
         </button>
